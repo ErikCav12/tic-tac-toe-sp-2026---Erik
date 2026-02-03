@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createGame, makeMove, getWinner } from "./tic-tac-toe";
+import { createGame, makeMove, getWinner, announceDraw } from "./tic-tac-toe";
 
 function App() {
   let [gameState, setGameState] = useState(getInitialGame())
@@ -9,6 +9,8 @@ function App() {
   }
 
   const winner = getWinner(gameState)
+
+  const drawMessage = announceDraw(gameState)
 
 
   // TODO: display the gameState, and call `makeMove` when a player clicks a button
@@ -41,6 +43,8 @@ function App() {
 
       {winner ? (
         <h2>And the Winner is: {winner}</h2>
+      ) : drawMessage ? (
+        <h2>{drawMessage}</h2>
       ) : (
         <h2>Game in progress...</h2>
       )}

@@ -67,14 +67,24 @@ export function getWinner(state: GameState): Player | null {
     //diagonals
     [0, 4, 8],
     [2, 4, 6]
-  ];
+  ];  
 
   // Chekc each winning combination
   for (const combo of winningCombinations) {
     const [a, b, c] = combo;
     if (board[a] !== null && board[a] === board[b] && board[b] === board[c]) {
       return board[a] as Player; // return the winner
-    }
+    } 
+  }
+  return null;
+}
+
+export function announceDraw(state: GameState): string | null {
+  const boardIsFull = state.board.every((cell) => cell !== null);
+  const noWinner = getWinner(state) === null;
+
+  if (boardIsFull && noWinner) {
+    return "It's a draw!";
   }
   return null;
 }
