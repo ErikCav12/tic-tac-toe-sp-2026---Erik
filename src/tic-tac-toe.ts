@@ -1,6 +1,6 @@
-export type Player = "X" | "O";
+export type Player = "X" | "O"; // States that the player will either have a value of X or 0
 
-export type Cell = Player | null;
+export type Cell = Player | null; // States that the player will either have a value of Player(variable) or null
 
 // Board is a 3x3 grid, represented as a 9-element array.
 // Indices map to positions:
@@ -9,7 +9,9 @@ export type Cell = Player | null;
 //  3 | 4 | 5
 //  ---------
 //  6 | 7 | 8
-export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell];
+export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell]; // explicitly defines that there must be nine values to the board (cells)
+
+//
 
 export type GameState = {
   board: Board;
