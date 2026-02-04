@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { createGame, makeMove, getWinner, announceDraw } from "./tic-tac-toe";
+import styles from './App.module.css'
+
 
 function App() {
   let [gameState, setGameState] = useState(getInitialGame())
@@ -17,9 +19,11 @@ function App() {
   // add in the winner is
 
   return (
-    <div>
-      <h1>Welcome to the World Championships of tic-tac-toe</h1>
-      <table>
+    <div className={styles.layout}>
+      <h1 className={styles.title}>Welcome to the World Championships of tic-tac-toe</h1>
+      <h2 className={styles.playerTurn}>Your turn Player {gameState.currentPlayer}</h2>
+
+      <table className={styles.board}>
         <tbody>
           {[0, 1, 2].map((row) => (
             <tr key={row}>
@@ -39,17 +43,16 @@ function App() {
         </tbody>
       </table>
 
-      <h2>Current player: {gameState.currentPlayer}</h2>
 
       {winner ? (
-        <h2>And the Winner is: {winner}</h2>
+        <h2 className={styles.statusOfGame}>And the Winner is: {winner}</h2>
       ) : drawMessage ? (
-        <h2>{drawMessage}</h2>
+        <h2 className={styles.statusOfGame}>{drawMessage}</h2>
       ) : (
-        <h2>Game in progress...</h2>
+        <h3 className={styles.statusOfGame}>Game in progress...</h3>
       )}
 
-      <button onClick={() => setGameState(createGame())}>Restart</button>
+      <button className={styles.btnNewGame} onClick={() => setGameState(createGame())}>New Game</button>
 
     </div>
   )

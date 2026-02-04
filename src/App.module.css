@@ -1,0 +1,71 @@
+body {
+    background-color: rgb(139, 230, 230);
+}
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 3px solid black;
+    border-radius: 5px;
+    padding-bottom: 10px;
+}
+
+.title {
+    font-weight: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.playerTurn {
+    font-weight: 1000;
+    color: rgb(80, 80, 80);
+}
+
+.playerName {
+    color: rgb(80, 80, 80);
+}
+
+.status {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-weight: 100;
+}
+
+.btnNewGame {
+    justify-content: center;
+    background-color: white;
+    color: rgb(80, 80, 80);
+    border-radius: 20px;
+    border: 1px solid #cfd9de;
+    padding: 10px 20px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 200px;
+}
+
+.board {
+    color: rgb(80, 80, 80);
+    font-size:2.5rem;
+    border-collapse: collapse;
+}
+
+.cell {
+    border: 3px solid rgb(80, 80, 80);
+    width: auto;
+    height: auto;
+    text-align: center;
+    padding: 0;
+}
+
+.playerTurn {
+    color: #0f1419;
+}
+
+@rule for checking if the box has been clicked.
+
+Teal background — rgb(77, 182, 172)
+Dark teal squares — rgb(64, 160, 152)
+Dark grey X — rgb(80, 80, 80)
