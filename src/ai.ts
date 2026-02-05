@@ -1,4 +1,4 @@
-import { createGame, makeMove, getWinner } from "./tic-tac-toe";
+import { getWinner } from "./tic-tac-toe";
 import type { GameState, Player, Board } from "./tic-tac-toe";
 
 export function getAIMove(state: GameState): number {

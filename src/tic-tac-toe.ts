@@ -14,6 +14,7 @@ export type Board = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell]; // e
 // GameState bundles together everything that you need to describe the game at any moment in time. Two key pieces of information, the board (which cells and by whom) and the player
 
 export type GameState = {
+  id: string;
   board: Board;
   currentPlayer: Player;
 };
