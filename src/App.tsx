@@ -151,7 +151,7 @@ function App() {
           </div>
           <div className={styles.statItem}>
             <span className={styles.statLabel}>Win %:</span>
-            <span className={styles.statValue}>{stats.winRate}</span>
+            <span className={styles.statValue}>{stats.winRate}%</span>
           </div>
         </div>
       </div>
