@@ -101,7 +101,7 @@ function App() {
         <h3 className={styles.statsTitle}>Your Statistics</h3>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Total Games:</span>
+            <span className={styles.statLabel}>Total:</span>
             <span className={styles.statValue}>{stats.totalGames}</span>
           </div>
           <div className={styles.statItem}>
@@ -117,7 +117,7 @@ function App() {
             <span className={styles.statValue}>{stats.draws}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Win Rate:</span>
+            <span className={styles.statLabel}>Win %:</span>
             <span className={styles.statValue}>{stats.winRate}%</span>
           </div>
         </div>
