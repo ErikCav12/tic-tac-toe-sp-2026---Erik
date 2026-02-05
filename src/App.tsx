@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { createGame, makeMove, getWinner, announceDraw, type Player } from "./tic-tac-toe";
+import { createGame, getWinner, announceDraw, type GameState, type Player } from "./tic-tac-toe";
 import { getAIMove } from "./ai";
 import styles from './App.module.css';
 
 function App() {
-  const [gameState, setGameState] = useState(getInitialGame());
+  const [gameState, setGameState] = useState<GameState>(getInitialGame());
   const [moveCount, setMoveCount] = useState(0);
+  const [gameId, setGameId] = useState<string | null>(null);
   const [stats, setStats] = useState({ 
     totalGames: 0, 
     wins: 0, 
@@ -20,7 +21,6 @@ function App() {
   const winner = getWinner(gameState);
   const drawMessage = announceDraw(gameState);
 
-  // Fetch stats on component mount
   const fetchStats = async () => {
     try {
       const response = await fetch("/api/stats");
@@ -35,13 +35,11 @@ function App() {
     fetchStats();
   }, []);
 
-  // Track move count
   useEffect(() => {
     const totalMoves = gameState.board.filter(cell => cell !== null).length;
     setMoveCount(totalMoves);
   }, [gameState.board]);
 
-  // Save game when it ends
   useEffect(() => {
     if (winner !== null || drawMessage !== null) {
       const saveGame = async () => {
@@ -51,7 +49,7 @@ function App() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               winner: winner || null,
-              moves: moveCount  // moveCount is already in scope
+              moves: moveCount
             })
           });
           fetchStats();
@@ -61,47 +59,82 @@ function App() {
       };
       saveGame();
     }
-  }, [winner, drawMessage]);  // Remove moveCount from here
-  
+  }, [winner, drawMessage]);
 
-  const handleCellClick = (position: number) => {
+  const handleCellClick = async (position: number) => {
+    if (gameId === null) return;
     if (gameState.currentPlayer !== HUMAN_PLAYER) return;
     if (winner !== null) return;
-    
-    setGameState(makeMove(gameState, position));
-  };
 
-  const handleNewGame = () => {
-    setGameState(createGame());
-    setMoveCount(0);
-  };
-
-  // AI automatically moves when it's AI's turn
-  useEffect(() => {
-    if (
-      gameState.currentPlayer === AI_PLAYER &&
-      winner === null &&
-      drawMessage === null
-    ) {
-      const timer = setTimeout(() => {
-        const aiPosition = getAIMove(gameState);
-        setGameState(makeMove(gameState, aiPosition));
-      }, 500);
-      
-      return () => clearTimeout(timer);
+    try {
+      const response = await fetch(`/move/${gameId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ position }),
+      });
+      if (!response.ok) {
+        console.error("Move failed:", await response.text());
+        return;
+      }
+      const data: GameState = await response.json();
+      setGameState(data);
+    } catch (error) {
+      console.error("Failed to make move:", error);
     }
-  }, [gameState, winner, drawMessage]);
+  };
+
+  const handleNewGame = async () => {
+    try {
+      const response = await fetch("/create", { method: "POST" });
+      if (!response.ok) {
+        console.error("Create game failed:", await response.text());
+        return;
+      }
+      const data: GameState = await response.json();
+      setGameId(data.id);
+      setGameState(data);
+      setMoveCount(0);
+    } catch (error) {
+      console.error("Failed to create game:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (gameId === null) return;
+    if (
+      gameState.currentPlayer !== AI_PLAYER ||
+      winner !== null ||
+      drawMessage !== null
+    ) return;
+
+    const timer = setTimeout(async () => {
+      const aiPosition = getAIMove(gameState);
+      try {
+        const response = await fetch(`/move/${gameId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ position: aiPosition }),
+        });
+        if (!response.ok) return;
+        const data: GameState = await response.json();
+        setGameState(data);
+      } catch (error) {
+        console.error("Failed to make AI move:", error);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [gameId, gameState, winner, drawMessage]);
 
   return (
     <div className={styles.layout}>
       <h1 className={styles.title}>Welcome to the World Championships of tic-tac-toe</h1>
       
-      {/* Stats Display */}
       <div className={styles.statsContainer}>
         <h3 className={styles.statsTitle}>Your Statistics</h3>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>Total:</span>
+            <span className={styles.statLabel}>Games:</span>
             <span className={styles.statValue}>{stats.totalGames}</span>
           </div>
           <div className={styles.statItem}>
@@ -135,14 +168,15 @@ function App() {
             <tr key={row}>
               {[0, 1, 2].map((col) => {
                 const position = row * 3 + col;
+                const canClick = gameId !== null && gameState.currentPlayer === HUMAN_PLAYER && !winner;
                 return (
                   <td
                     key={col}
-                    onClick={() => handleCellClick(position)}
+                    onClick={() => void handleCellClick(position)}
                     className={styles.cell}
                     style={{
-                      cursor: gameState.currentPlayer === HUMAN_PLAYER && !winner ? 'pointer' : 'not-allowed',
-                      opacity: gameState.currentPlayer === HUMAN_PLAYER && !winner ? 1 : 0.7
+                      cursor: canClick ? 'pointer' : 'not-allowed',
+                      opacity: canClick ? 1 : 0.7
                     }}
                   >
                     {gameState.board[position] || "_"}
@@ -161,17 +195,19 @@ function App() {
       ) : drawMessage ? (
         <h2 className={styles.statusOfGame}>{drawMessage}</h2>
       ) : (
-        <h3 className={styles.statusOfGame}>Game in progress...</h3>
+        <h3 className={styles.statusOfGame}>
+          {gameId === null ? "Click New Game to start" : "Game in progress..."}
+        </h3>
       )}
 
-      <button className={styles.btnNewGame} onClick={handleNewGame}>
+      <button className={styles.btnNewGame} onClick={() => void handleNewGame()}>
         New Game
       </button>
     </div>
   );
 }
 
-function getInitialGame() {
+function getInitialGame(): GameState {
   return createGame();
 }
 
