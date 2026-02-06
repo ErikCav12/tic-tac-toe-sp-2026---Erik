@@ -198,7 +198,8 @@ export { broadcastGameUpdate };
 
 // Start server: same port for HTTP and WebSocket; ViteExpress.bind is async.
 ViteExpress.bind(app, server).then(() => {
-  server.listen(3000, () => {
-    console.log("Server is listening on port 3000...");
+  const port = Number(process.env.PORT) || 3000;
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`Server is listening on port ${port}...`);
   });
-});
+})
