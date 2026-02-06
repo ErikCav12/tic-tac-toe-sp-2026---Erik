@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { createGame, makeMove, getWinner, announceDraw, type GameState, type Player } from "./tic-tac-toe";
-import { getAIMove } from "./ai";
-import styles from "./App.module.css";
+import { createGame, makeMove, getWinner, announceDraw, type GameState, type Player } from "../tic-tac-toe";
+import { getAIMove } from "../ai";
+import styles from "../App.module.css";
 
 type AppProps = {
   gameId?: string | null;
@@ -113,6 +113,35 @@ function App({ gameId = null, onBackToLobby, onOpenGame }: AppProps) {
     return () => clearTimeout(t);
   }, [gameId, gameState, gameOver]);
 
+  useEffect(() => {
+    if (!gameId) return;
+    const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    const ws = new WebSocket(`${protocol}//${location.host}/ws`);
+    const cancelled = { current: false };
+  
+    ws.onopen = () => {
+      if (cancelled.current) {
+        ws.close();
+        return;
+      }
+      ws.send(JSON.stringify({ type: "subscribe", gameId }));
+    };
+    ws.onmessage = (event) => {
+      try {
+        setGameState(JSON.parse(event.data as string) as GameState);
+      } catch {}
+    };
+  
+    return () => {
+      cancelled.current = true;
+      if (ws.readyState === WebSocket.CONNECTING) {
+        // Don't close here — avoids "closed before established"; onopen will close if it ever fires
+      } else if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CLOSING) {
+        ws.close();
+      }
+    };
+  }, [gameId]);
+
   if (loading) {
     return (
       <div className={styles.gameScreen}>
@@ -126,6 +155,7 @@ function App({ gameId = null, onBackToLobby, onOpenGame }: AppProps) {
       </div>
     );
   }
+
 
   return (
     <div className={styles.gameScreen}>

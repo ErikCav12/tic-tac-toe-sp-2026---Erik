@@ -1,7 +1,10 @@
+/// <reference path="./express-ws.d.ts" />
 import express, { Request, Response } from "express";
 import ViteExpress from "vite-express";
 import type { GameState } from "./src/tic-tac-toe"
 import { createGame, makeMove } from "./src/tic-tac-toe"
+import http from "http"
+import type { WebSocket } from "ws";
 
 const app = express();
 
@@ -23,6 +26,9 @@ export function resetGameStore() {
     delete gameStore[key];
   }
 }
+
+// --- WebSocket: who is subscribed to which game (GameId => Set of clients) ---
+const subscriptions = new Map<string, Set<WebSocket>>();
 
 // API Routes
 
@@ -131,6 +137,7 @@ app.post("/move/:id", (req: Request, res: Response) => {
     const nextState = makeMove(game, pos);
     const updated: GameState = { ...nextState, id: game.id };
     gameStore[id] = updated;
+    broadcastGameUpdate(id, updated);
     return res.status(200).json(updated);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Invalid move";
@@ -140,7 +147,58 @@ app.post("/move/:id", (req: Request, res: Response) => {
 
 export default app
 
-// Start server with ViteExpress
-ViteExpress.listen(app, 3000, () => {
-  console.log("Server is listening on port 3000...");
+// --- WebSocket: subscribe by gameId, broadcast on game update ---
+import expressWs from "express-ws";
+
+const server = http.createServer(app);
+expressWs(app, server);
+
+// Subscribe on first message; remove on close so we don't leak or send to dead connections.
+app.ws("/ws", (ws, _req) => {
+  let gameId: string | null = null;
+
+  ws.on("message", (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString()) as { type?: string; gameId?: string };
+      if (msg.type !== "subscribe" || typeof msg.gameId !== "string") return;
+      if (!gameStore[msg.gameId]) return; // only subscribe to existing games
+      gameId = msg.gameId;
+      if (!subscriptions.has(gameId)) subscriptions.set(gameId, new Set());
+      subscriptions.get(gameId)!.add(ws);
+    } catch {
+      // ignore invalid JSON
+    }
+  });
+
+  ws.on("close", () => {
+    if (gameId) {
+      subscriptions.get(gameId)?.delete(ws);
+      if (subscriptions.get(gameId)?.size === 0) subscriptions.delete(gameId);
+    }
+  });
+});
+
+// Send update: broadcast new game state to all clients subscribed to this game.
+function broadcastGameUpdate(gameId: string, state: GameState) {
+  const payload = JSON.stringify(state);
+  const set = subscriptions.get(gameId);
+  if (!set) return;
+  for (const ws of set) {
+    if (ws.readyState === 1) {
+      try {
+        ws.send(payload);
+      } catch {
+        // ignore send errors
+      }
+    }
+  }
+}
+
+export { broadcastGameUpdate };
+
+// Start server: same port for HTTP and WebSocket; ViteExpress.bind is async.
+ViteExpress.bind(app, server).then(() => {
+  server.listen(3000, () => {
+    console.log("Server is listening on port 3000...");
+  });
 });

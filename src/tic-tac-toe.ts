@@ -23,6 +23,7 @@ export type GameState = {
 
 export function createGame(): GameState {
   return {
+    id: "",
     board: [null, null, null, null, null, null, null, null, null],
     currentPlayer: "X",
   };
@@ -46,6 +47,7 @@ export function makeMove(state: GameState, position: number): GameState {
   const nextPlayer: Player = state.currentPlayer === "X" ? "O" : "X";
 
   return {
+    id: "" ,
     board: newBoard,
     currentPlayer: nextPlayer,
   }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Lobby from "./components/Lobby";
-import App from "./App";
+import App from "./components/App";
 import styles from "./App.module.css";
 
 const GAME_ID_KEY = "ticTacToeGameId";
@@ -42,6 +42,7 @@ function Root() {
         <App
           gameId={activeGameId}
           onBackToLobby={goToLobby}
+          onOpenGame={(id) => goToGame(id)}
         />
       )}
     </div>
