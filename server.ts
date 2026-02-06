@@ -18,6 +18,11 @@ const games: Array<{
 
 // --- Live games (in progress) ---
 const gameStore: Record<string, GameState> = {};
+export function resetGameStore() {
+  for (const key of Object.keys(gameStore)) {
+    delete gameStore[key];
+  }
+}
 
 // API Routes
 
@@ -132,6 +137,8 @@ app.post("/move/:id", (req: Request, res: Response) => {
     return res.status(400).json({ error: message });
   }
 });
+
+export default app
 
 // Start server with ViteExpress
 ViteExpress.listen(app, 3000, () => {

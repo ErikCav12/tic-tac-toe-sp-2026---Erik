@@ -39,8 +39,8 @@
      justify-content: center;
      align-items: center;
      font-family: 'Press Start 2P', monospace;
-     overflow: hidden;
-   }
+     overflow-y: auto;
+     padding: 20px 0;   }
    
    /* --- Arcade Cabinet Shell --- */
    .layout {
@@ -333,4 +333,11 @@
     display: block;
     width: 100%; /* Full width for centering */
     line-height: 1.2; /* Consistent line height */
+  }
+
+  .gameScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
   }

@@ -6,12 +6,13 @@ import styles from "./App.module.css";
 type AppProps = {
   gameId?: string | null;
   onBackToLobby?: () => void;
+  onOpenGame?: (id: string) => void;
 };
 
 const HUMAN: Player = "X";
 const AI: Player = "O";
 
-function App({ gameId = null, onBackToLobby }: AppProps) {
+function App({ gameId = null, onBackToLobby, onOpenGame }: AppProps) {
   const [gameState, setGameState] = useState(createGame);
   const [loading, setLoading] = useState(!!gameId);
   const [stats, setStats] = useState({ totalGames: 0, wins: 0, losses: 0, draws: 0, winRate: 0 });
@@ -76,8 +77,18 @@ function App({ gameId = null, onBackToLobby }: AppProps) {
     }
     setGameState(makeMove(gameState, position));
   };
-
-  const handleNewGame = () => {
+  // handleNewGame is a function that creates a new game
+  const handleNewGame = async () => {
+    if (gameId && onOpenGame) {
+      try {
+        const r = await fetch("/create", { method: "POST" });
+        if (r.ok) {
+          const data = await r.json();
+          onOpenGame(data.id);
+        }
+      } catch {}
+      return;   // ← always runs when gameId && onOpenGame
+    }
     if (gameId) return;
     setGameState(createGame());
   };
@@ -104,8 +115,8 @@ function App({ gameId = null, onBackToLobby }: AppProps) {
 
   if (loading) {
     return (
-      <div className={styles.layout}>
-        <h1 className={styles.title}>Tic-Tac-Toe</h1>
+      <div className={styles.gameScreen}>
+        <h1 className={styles.title}>Triple T World Championships</h1>
         <p className={styles.statusOfGame}>Loading game…</p>
         {onBackToLobby && (
           <button type="button" className={styles.btnNewGame} onClick={onBackToLobby}>
@@ -117,8 +128,8 @@ function App({ gameId = null, onBackToLobby }: AppProps) {
   }
 
   return (
-    <div className={styles.layout}>
-      <h1 className={styles.title}>Tic-Tac-Toe</h1>
+    <div className={styles.gameScreen}>
+      <h1 className={styles.title}>Triple T World Champs</h1>
       <div className={styles.statsContainer}>
         <h3 className={styles.statsTitle}>Stats</h3>
         <div className={styles.statsGrid}>
@@ -157,8 +168,16 @@ function App({ gameId = null, onBackToLobby }: AppProps) {
       {winner && <h2 className={styles.statusOfGame}>{winner === HUMAN ? "You won!" : "AI won!"}</h2>}
       {drawMessage && !winner && <h2 className={styles.statusOfGame}>{drawMessage}</h2>}
       {!gameOver && <h3 className={styles.statusOfGame}>In progress…</h3>}
-      {!gameId && <button className={styles.btnNewGame} onClick={handleNewGame}>New Game</button>}
-      {onBackToLobby && <button type="button" className={styles.btnNewGame} onClick={onBackToLobby}>Lobby</button>}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", alignItems: "center", marginTop: "0.5rem" }}>
+          <button type="button" className={styles.btnNewGame} onClick={handleNewGame}>
+            New Game
+          </button>
+          {onBackToLobby && (
+          <button type="button" className={styles.btnNewGame} onClick={onBackToLobby}>
+            Lobby
+          </button>
+        )}
+      </div>
     </div>
   );
 }
