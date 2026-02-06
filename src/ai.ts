@@ -17,7 +17,7 @@ export function getAIMove(state: GameState): number {
     const wouldWin = (position: number, player: Player): boolean => {
       const testBoard = [...board];
       testBoard[position] = player;
-      const testState: GameState = { board: testBoard as Board, currentPlayer: player };
+      const testState: GameState = { id:'', board: testBoard as Board, currentPlayer: player };
       return getWinner(testState) === player;
     };
     
