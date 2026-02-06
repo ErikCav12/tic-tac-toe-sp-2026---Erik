@@ -87,25 +87,6 @@ app.get("/games", (_req: Request, res: Response) => {
   res.json(allGames);
 });
 
-// --- Live game API (for Lobby and game screen) ---
-
-// GET /games - List all live games
-app.get("/games", (_req: Request, res: Response) => {
-  res.json(Object.values(gameStore));
-});
-
-// POST /create - Create a new live game
-app.post("/create", (_req: Request, res: Response) => {
-  const id = crypto.randomUUID();
-  const newGame: GameState = {
-    id,
-    board: [null, null, null, null, null, null, null, null, null],
-    currentPlayer: "X",
-  };
-  gameStore[id] = newGame;
-  res.status(200).json(newGame);
-});
-
 // GET /game/:id - Get a single live game
 app.get("/game/:id", (req: Request, res: Response) => {
   const id = req.params.id as string;
